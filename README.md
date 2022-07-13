@@ -13,3 +13,13 @@ npx hardhat node
 node scripts/sample-script.js
 npx hardhat help
 ```
+
+To create file to use verify etherscan
+
+```shell
+npx hardhat flatten > Flattened.sol
+```
+
+remove license code and only keep it at the top of the file
+
+This project is upload to [testsnets opensea](https://testnets.opensea.io/)

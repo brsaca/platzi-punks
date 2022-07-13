@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./Base64.sol";
 import "./PlatziPunksDNA.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract PlatziPunks is ERC721, ERC721Enumerable, PlatziPunksDNA {
 
@@ -13,28 +14,20 @@ contract PlatziPunks is ERC721, ERC721Enumerable, PlatziPunksDNA {
 
     Counters.Counter private _idCounter;
     uint256 public maxSupply;
-    address _owner;
     mapping(uint256 => uint256) public tokenDNA;
 
     constructor(uint256 _maxSupply) ERC721("PlatziPunks", "PLPKS") {
         maxSupply = _maxSupply;
-        _owner = msg.sender;
     }
 
-   function mint() public payable {
+   function mint() public {
         uint256 current = _idCounter.current();
-        
-        // pregunto si esta enviando 0.1 eth
-        require( msg.value >= 0.1 ether, "Insufficient funds" );
 
         // me fijo si quedan PUNKS disponibles        
         require(current < maxSupply, "No PlatziPunks left :(");
 
         // número pseudo aleatorio para DNA
         tokenDNA[current] = deterministicPseudoRandomDNA(current, msg.sender);
-        
-        // transfiero los ethers
-        payable(_owner).transfer( msg.value );
 
         // envio el NFT
         _safeMint(msg.sender, current);
@@ -42,6 +35,7 @@ contract PlatziPunks is ERC721, ERC721Enumerable, PlatziPunksDNA {
         // incremento el contador
         _idCounter.increment();
     } 
+
 
     function _baseURI() internal pure override returns (string memory) {
         return "https://avataaars.io/";
@@ -90,10 +84,11 @@ contract PlatziPunks is ERC721, ERC721Enumerable, PlatziPunksDNA {
         public
         view
         override
-        returns (string memory) {
+        returns (string memory)
+    {
         require(
             _exists(tokenId),
-            "ERC721 Metadata: URI query for nonexitent token"
+            "ERC721 Metadata: URI query for nonexistent token"
         );
 
         uint256 dna = tokenDNA[tokenId];
@@ -102,15 +97,15 @@ contract PlatziPunks is ERC721, ERC721Enumerable, PlatziPunksDNA {
         string memory jsonURI = Base64.encode(
             abi.encodePacked(
                 '{ "name": "PlatziPunks #',
-                tokenId, 
-                '"external_url": "http://brendasaavedra.com"', 
-                '"description": "Platzi Punks are randomized Avataaars stored on chain to teach DApp development on Platzi"', 
-                '"image":', image,
+                Strings.toString(tokenId),
+                '", "description": "Platzi Punks are randomized Avataaars stored on chain to teach DApp development on Platzi", "image": "',
+                image,
                 '"}'
             )
         );
 
-        return string(abi.encodePacked("data:application/json;base64,", jsonURI));
+        return
+            string(abi.encodePacked("data:application/json;base64,", jsonURI));
     }
 
     // Override required
